@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Research Engine</title>
+    <!-- Add marked.js for Markdown processing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .search-section {
+            margin-bottom: 40px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .status-message {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .output-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .output-log {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border: 2px solid #333;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .results-content h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        /* Enhanced Markdown styling */
+        .markdown-content {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .markdown-content h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin: 30px 0 20px 0;
+            font-size: 2.2em;
+        }
+
+        .markdown-content h2 {
+            color: #34495e;
+            border-bottom: 2px solid #95a5a6;
+            padding-bottom: 8px;
+            margin: 25px 0 15px 0;
+            font-size: 1.8em;
+        }
+
+        .markdown-content h3 {
+            color: #667eea;
+            margin: 20px 0 12px 0;
+            font-size: 1.4em;
+        }
+
+        .markdown-content h4 {
+            color: #7f8c8d;
+            margin: 18px 0 10px 0;
+            font-size: 1.2em;
+        }
+
+        .markdown-content h5 {
+            color: #95a5a6;
+            margin: 15px 0 8px 0;
+            font-size: 1.1em;
+        }
+
+        .markdown-content h6 {
+            color: #bdc3c7;
+            margin: 12px 0 6px 0;
+            font-size: 1em;
+        }
+
+        .markdown-content p {
+            margin: 15px 0;
+            color: #2c3e50;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        .markdown-content li {
+            margin: 8px 0;
+            color: #34495e;
+        }
+
+        .markdown-content li ul, .markdown-content li ol {
+            margin: 5px 0;
+        }
+
+        .markdown-content blockquote {
+            border-left: 4px solid #667eea;
+            background: #f8f9fa;
+            margin: 20px 0;
+            padding: 15px 20px;
+            color: #555;
+            font-style: italic;
+        }
+
+        .markdown-content code {
+            background: #f1f2f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+
+        .markdown-content pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .markdown-content th,
+        .markdown-content td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .markdown-content th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        .markdown-content tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .markdown-content tr:hover {
+            background: #f1f1f1;
+        }
+
+        .markdown-content a {
+            color: #667eea;
+            text-decoration: none;
+            border-bottom: 1px dotted #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .markdown-content a:hover {
+            color: #764ba2;
+            border-bottom: 1px solid #764ba2;
+        }
+
+        .markdown-content strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .markdown-content em {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .markdown-content hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            margin: 30px 0;
+            border-radius: 1px;
+        }
+
+        /* Copy button for results */
+        .copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #764ba2;
+            transform: translateY(-1px);
+        }
+
+        .results-header {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .error-section {
+            display: none;
+            background: #ffe6e6;
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .error-section h3 {
+            color: #d32f2f;
+            margin-bottom: 10px;
+        }
+
+        .error-section p {
+            color: #666;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 2s infinite;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-input, .search-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 AI Research Engine</h1>
+            <p>Multi-Source Research Agent powered by LangGraph</p>
+        </div>
+
+        <div class="main-content">
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Enter your research question..." id="searchInput">
+                    <button class="search-btn" onclick="startResearch()" id="searchBtn">🚀 Start Research</button>
+                </div>
+            </div>
+
+            <div class="progress-section" id="progressSection">
+                <div class="progress-header">
+                    <strong>Research Progress</strong>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="status-message" id="statusMessage">Initializing...</div>
+            </div>
+
+            <div class="output-section" id="outputSection">
+                <h3>🖥️ Live Output Log</h3>
+                <div class="output-log" id="outputLog"></div>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="results-content">
+                    <div class="results-header">
+                        <h3>📊 Research Results</h3>
+                        <button class="copy-btn" onclick="copyResults()" id="copyBtn">📋 Copy</button>
+                    </div>
+                    <div class="markdown-content" id="resultsContent"></div>
+                </div>
+            </div>
+
+            <div class="error-section" id="errorSection">
+                <h3>❌ Error</h3>
+                <p id="errorMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let pollingInterval = null;
+        let rawResults = '';
+        const API_BASE = 'http://localhost:8000';
+
+        async function startResearch() {
+            const question = document.getElementById('searchInput').value.trim();
+            if (!question) {
+                alert('Please enter a research question');
+                return;
+            }
+
+            // Reset UI
+            resetUI();
+            showProgress();
+            
+            try {
+                // Start research
+                const response = await fetch(`${API_BASE}/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                currentSessionId = data.session_id;
+
+                // Start polling for status
+                startPolling();
+
+            } catch (error) {
+                console.error('Error starting research:', error);
+                showError(`Failed to start research: ${error.message}`);
+            }
+        }
+
+        function startPolling() {
+            pollingInterval = setInterval(async () => {
+                try {
+                    // Get status
+                    const statusResponse = await fetch(`${API_BASE}/status/${currentSessionId}`);
+                    if (!statusResponse.ok) {
+                        throw new Error(`HTTP error! status: ${statusResponse.status}`);
+                    }
+
+                    const status = await statusResponse.json();
+                    updateProgress(status);
+
+                    // Get output log
+                    try {
+                        const outputResponse = await fetch(`${API_BASE}/output/${currentSessionId}`);
+                        if (outputResponse.ok) {
+                            const outputData = await outputResponse.json();
+                            updateOutputLog(outputData.output_log);
+                        }
+                    } catch (outputError) {
+                        console.warn('Could not fetch output log:', outputError);
+                    }
+
+                    if (status.status === 'completed' || status.status === 'error' || status.status === 'timeout') {
+                        clearInterval(pollingInterval);
+                        if (status.status === 'completed') {
+                            showResults(status.result);
+                        } else {
+                            showError(status.message);
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('Error polling status:', error);
+                    clearInterval(pollingInterval);
+                    showError(`Connection error: ${error.message}`);
+                }
+            }, 1000);
+        }
+
+        function updateOutputLog(outputLog) {
+            const outputLogElement = document.getElementById('outputLog');
+            if (outputLogElement) {
+                outputLogElement.textContent = outputLog;
+                outputLogElement.scrollTop = outputLogElement.scrollHeight;
+            }
+        }
+
+        function updateProgress(status) {
+            const progressFill = document.getElementById('progressFill');
+            const progressPercent = document.getElementById('progressPercent');
+            const statusMessage = document.getElementById('statusMessage');
+
+            if (progressFill) progressFill.style.width = `${status.progress}%`;
+            if (progressPercent) progressPercent.textContent = `${status.progress}%`;
+            if (statusMessage) statusMessage.textContent = status.message;
+        }
+
+        function showProgress() {
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('outputSection').style.display = 'block';
+            document.getElementById('searchBtn').disabled = true;
+            document.getElementById('searchBtn').textContent = '🔄 Researching...';
+            document.getElementById('searchBtn').classList.add('loading');
+        }
+
+        function showResults(result) {
+            rawResults = result; // Store raw results for copying
+            
+            // Process Markdown and display
+            const resultsContent = document.getElementById('resultsContent');
+            if (typeof marked !== 'undefined') {
+                // Configure marked options for better rendering
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: false,
+                    mangle: false
+                });
+                resultsContent.innerHTML = marked.parse(result);
+            } else {
+                // Fallback if marked.js fails to load
+                resultsContent.innerHTML = result.replace(/\n/g, '<br>');
+            }
+            
+            document.getElementById('resultsSection').style.display = 'block';
+            resetSearchButton();
+            
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+
+        function copyResults() {
+            if (rawResults) {
+                navigator.clipboard.writeText(rawResults).then(() => {
+                    const copyBtn = document.getElementById('copyBtn');
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = '✅ Copied!';
+                    copyBtn.style.background = '#27ae60';
+                    
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.style.background = '#667eea';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    alert('Failed to copy to clipboard');
+                });
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorSection').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+            resetSearchButton();
+        }
+
+        function resetSearchButton() {
+            document.getElementById('searchBtn').disabled = false;
+            document.getElementById('searchBtn').textContent = '🚀 Start Research';
+            document.getElementById('searchBtn').classList.remove('loading');
+        }
+
+        function resetUI() {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('outputSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+            document.getElementById('outputLog').textContent = '';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressPercent').textContent = '0%';
+            rawResults = '';
+        }
+
+        // Allow Enter key to start research
+        document.getElementById('searchInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                startResearch();
+            }
+        });
+
+        // Test if marked.js loaded properly
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof marked === 'undefined') {
+                console.warn('Marked.js failed to load. Markdown rendering will be limited.');
+            }
+        });
+    </script>
+</body>
+</html>
